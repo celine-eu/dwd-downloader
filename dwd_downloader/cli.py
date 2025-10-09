@@ -1,3 +1,4 @@
+import sys
 import argparse
 from datetime import datetime, timezone
 from .api import dwd_downloader
@@ -19,7 +20,8 @@ def main():
     )
     args = parser.parse_args()
 
-    dwd_downloader(args.config, args.date)
+    failed = dwd_downloader(args.config, args.date)
+    sys.exit(1 if failed else 0)
 
 
 if __name__ == "__main__":

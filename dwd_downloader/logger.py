@@ -1,4 +1,4 @@
-# dwd_downloader/logger.py
+import os
 import logging
 from pathlib import Path
 from typing import Optional
@@ -21,6 +21,17 @@ def get_logger(
         logger instance
     """
     logger = logging.getLogger(name)
+
+    env_level = os.getenv("LOG_LEVEL")
+    if env_level:
+        env_level_val = logging.getLevelNamesMapping().get(env_level.upper(), None)
+        if env_level_val:
+            level = env_level_val
+        else:
+            logger.warning(
+                f"LOG_LEVEL={env_level} is not valid. Valid values are {", ".join(logging.getLevelNamesMapping().keys())}"
+            )
+
     logger.setLevel(level)
 
     if logger.hasHandlers():

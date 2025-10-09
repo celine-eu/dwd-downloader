@@ -28,6 +28,7 @@ dwd_downloader()
 
 ## Environment variables
 
-Use `CONFIG_PATH` to specify the config yaml location. 
+- Use `CONFIG_PATH` to specify the config yaml location. 
+- Use `LOG_LEVEL` to tune the logging level
 
 `config.yaml` can use env variables replacements

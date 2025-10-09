@@ -44,7 +44,9 @@ def mirror_icon_dataset(
                 url_folder, yyyymmdd
             )
             if not available_files:
-                logger.warning("HTML index empty/fail for %s/%s. Skipping", run, var)
+                logger.warning(
+                    "HTML index is empty or failed for '%s/%s'. Skipping", run, var
+                )
                 continue
 
             for step in dataset["forecast_steps"]:
