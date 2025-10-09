@@ -1,8 +1,6 @@
 import argparse
 from datetime import datetime, timezone
-from pathlib import Path
-from .datasets import load_dataset_config
-from .mirror import mirror_icon_dataset
+from .api import dwd_downloader
 
 
 def main():
@@ -21,11 +19,7 @@ def main():
     )
     args = parser.parse_args()
 
-    datasets, storage_cfg = load_dataset_config(Path(args.config))
-    date = datetime.strptime(args.date, "%Y%m%d").replace(tzinfo=timezone.utc)
-
-    for dataset in datasets:
-        mirror_icon_dataset(dataset, storage_cfg, date)
+    dwd_downloader(args.config, args.date)
 
 
 if __name__ == "__main__":
