@@ -25,3 +25,9 @@ dwd_downloader()
 # dwd_downloader("./config.yaml", "20251008")
 
 ```
+
+## Environment variables
+
+Use `CONFIG_PATH` to specify the config yaml location. 
+
+`config.yaml` can use env variables replacements

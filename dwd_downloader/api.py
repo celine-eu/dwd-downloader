@@ -1,16 +1,48 @@
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from .datasets import load_dataset_config
 from .mirror import mirror_icon_dataset
+from .logger import get_logger
+from dotenv import load_dotenv
+
+logger = get_logger(__name__)
 
 
 def dwd_downloader(config: str = "./config.yaml", date: str | None = None):
 
+    load_dotenv()
+
     if date is None or date == "":
         date = datetime.now(timezone.utc).strftime("%Y%m%d")
 
-    datasets, storage_cfg = load_dataset_config(Path(config))
-    date_ref = datetime.strptime(date, "%Y%m%d").replace(tzinfo=timezone.utc)
+    env_config_path = os.getenv("CONFIG_PATH")
+    if env_config_path:
+        config = env_config_path
+        logger.info("Using config path from env CONFIG_PATH at %s", config)
+
+    try:
+        datasets, storage_cfg = load_dataset_config(Path(config))
+        logger.info("Loaded config from %s", config)
+    except Exception as e:
+        logger.error("Failed to load config: %s", e, exc_info=True)
+        return
+
+    try:
+        date_ref = datetime.strptime(date, "%Y%m%d").replace(tzinfo=timezone.utc)
+    except ValueError as e:
+        logger.error("Invalid date format: %s", e)
+        return
 
     for dataset in datasets:
-        mirror_icon_dataset(dataset, storage_cfg, date_ref)
+        ds_name = dataset.get("name") or "unknown"
+        try:
+            logger.info("Starting mirror for dataset: %s", ds_name)
+            mirror_icon_dataset(dataset, storage_cfg, date_ref)
+        except Exception as e:
+            logger.error(
+                "Failed to mirror dataset %s: %s",
+                ds_name,
+                e,
+                exc_info=True,
+            )
