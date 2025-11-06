@@ -22,7 +22,7 @@ def mirror_icon_dataset(
     data_dir: Path = Path(storage_cfg.get("data_dir", "./data"))
     decompress: bool = bool(storage_cfg.get("decompress", False))
     dataset_dir: Path = data_dir / dataset["name"]
-    metadata: Dict[str, Any] = load_metadata(dataset_dir)
+    metadata: Dict[str, Any] = load_metadata(storage_cfg, dataset_dir)
 
     logger.info("Starting mirror for dataset %s, date %s", dataset["name"], yyyymmdd)
 
@@ -84,5 +84,5 @@ def mirror_icon_dataset(
                         "Failed downloading %s: %s", filename, e, exc_info=True
                     )
 
-    save_metadata(dataset_dir, metadata)
+    save_metadata(storage_cfg, dataset_dir, metadata)
     logger.info("Completed mirror for dataset %s", dataset["name"])

@@ -23,5 +23,6 @@ datasets:
     file_template: "icon-eu_{grid}_{subgrid}_{level}_{date}{run}_{step:03d}_{var_upper}.grib2.bz2"
 
 storage:
+  type: fs
   data_dir: ${DATA_DIR}
   decompress: true
