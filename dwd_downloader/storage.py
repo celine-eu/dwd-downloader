@@ -7,9 +7,8 @@ from .logger import get_logger
 logger = get_logger(__name__)
 
 
-def get_storage(cfg: Dict[str, Any]):
+def get_storage(storage_cfg: Dict[str, Any]):
     """Initialize storage backend from config."""
-    storage_cfg = cfg.get("storage", {})
     stype = os.getenv("STORAGE_TYPE", None) or storage_cfg.get("type", "fs")
 
     if stype == "fs":
