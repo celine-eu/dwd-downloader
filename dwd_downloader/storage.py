@@ -13,9 +13,9 @@ def get_storage(cfg: Dict[str, Any]):
     stype = os.getenv("STORAGE_TYPE", None) or storage_cfg.get("type", "fs")
 
     if stype == "fs":
-        base_dir = os.getenv("CDS_DATA_DIR", None)
+        base_dir = os.getenv("DWD_DATA_DIR", None)
         if base_dir:
-            logger.info(f"Using {base_dir} (CDS_DATA_DIR) for data storage")
+            logger.info(f"Using {base_dir} (DWD_DATA_DIR) for data storage")
         else:
             base_dir = storage_cfg.get("base_dir", None)
             if base_dir:
