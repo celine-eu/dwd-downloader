@@ -14,7 +14,7 @@
 
 ### Bug Fixes
 
-- Update base_dir settings
+- Update data_dir settings
   ([`4f67d0b`](https://github.com/celine-eu/dwd-downloader/commit/4f67d0b580dbbd839b058f6c2ccab9dc537a95ad))
 
 

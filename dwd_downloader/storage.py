@@ -13,18 +13,18 @@ def get_storage(cfg: Dict[str, Any]):
     stype = os.getenv("STORAGE_TYPE", None) or storage_cfg.get("type", "fs")
 
     if stype == "fs":
-        base_dir = os.getenv("DWD_DATA_DIR", None)
-        if base_dir:
-            logger.info(f"Using {base_dir} (DWD_DATA_DIR) for data storage")
+        data_dir = os.getenv("DWD_DATA_DIR", None)
+        if data_dir:
+            logger.info(f"Using {data_dir} (DWD_DATA_DIR) for data storage")
         else:
-            base_dir = storage_cfg.get("base_dir", None)
-            if base_dir:
-                logger.info(f"Using {base_dir} (config) for data storage")
+            data_dir = storage_cfg.get("base_dir", None)
+            if data_dir:
+                logger.info(f"Using {data_dir} (config) for data storage")
             else:
-                base_dir = "./data"
-                logger.info(f"Using {base_dir} (default) for data storage")
+                data_dir = "./data"
+                logger.info(f"Using {data_dir} (default) for data storage")
 
-        return FSStorage(base_dir=base_dir)
+        return FSStorage(base_dir=data_dir)
 
     elif stype == "s3":
         bucket = (
