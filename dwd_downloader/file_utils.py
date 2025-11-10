@@ -37,7 +37,9 @@ def save_metadata(
     key = f"{dataset_dir}/metadata.json"
 
     try:
-        with tempfile.NamedTemporaryFile("w", encoding="utf-8", delete=False) as tmp:
+        with tempfile.NamedTemporaryFile(
+            "w", encoding="utf-8", delete=False, dir=dataset_dir
+        ) as tmp:
             json.dump(metadata, tmp, indent=2)
             tmp.flush()
             storage.save(tmp.name, str(key))
