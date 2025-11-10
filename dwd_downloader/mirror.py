@@ -71,7 +71,7 @@ def mirror_icon_dataset(
                     continue
 
                 # Download
-                dest: Path = dataset_dir / run / var / filename
+                dest: Path = dataset_dir / yyyymmdd / run / var / filename
                 try:
                     success: bool = download_file(
                         url_folder + filename, dest, decompress=decompress
