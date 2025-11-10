@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.0.4 (2025-11-10)
+
+### Bug Fixes
+
+- Use data_dir config
+  ([`120be0a`](https://github.com/celine-eu/dwd-downloader/commit/120be0aee19dfa6cb6f839e5429e26a1f7043a9e))
+
+
 ## v1.0.3 (2025-11-10)
 
 ### Bug Fixes
