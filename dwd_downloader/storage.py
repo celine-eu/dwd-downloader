@@ -17,7 +17,7 @@ def get_storage(cfg: Dict[str, Any]):
         if data_dir:
             logger.info(f"Using {data_dir} (DWD_DATA_DIR) for data storage")
         else:
-            data_dir = storage_cfg.get("base_dir", None)
+            data_dir = storage_cfg.get("data_dir", None)
             if data_dir:
                 logger.info(f"Using {data_dir} (config) for data storage")
             else:
