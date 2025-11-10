@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.0.2 (2025-11-10)
+
+### Bug Fixes
+
+- Update base_dir settings
+  ([`4f67d0b`](https://github.com/celine-eu/dwd-downloader/commit/4f67d0b580dbbd839b058f6c2ccab9dc537a95ad))
+
+
 ## v1.0.1 (2025-11-10)
 
 ### Chores
