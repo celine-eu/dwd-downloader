@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.0.6 (2025-11-10)
+
+### Bug Fixes
+
+- Wrong storage_cfg object
+  ([`e3c8537`](https://github.com/celine-eu/dwd-downloader/commit/e3c85373ed7506e97670f898a7635fcc836ee23d))
+
+
 ## v1.0.5 (2025-11-10)
 
 ### Bug Fixes
