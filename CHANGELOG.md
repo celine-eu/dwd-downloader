@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.0.5 (2025-11-10)
+
+### Bug Fixes
+
+- Missing data_dir
+  ([`b9cf257`](https://github.com/celine-eu/dwd-downloader/commit/b9cf257e8ff7ab2d1fd79dba9ccd43f625531c50))
+
+
 ## v1.0.4 (2025-11-10)
 
 ### Bug Fixes
