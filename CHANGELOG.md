@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.0.7 (2025-11-10)
+
+### Bug Fixes
+
+- Add date to folder
+  ([`2cded0e`](https://github.com/celine-eu/dwd-downloader/commit/2cded0e2d660b5aaa55a60a0c46831b352c7ef3d))
+
+
 ## v1.0.6 (2025-11-10)
 
 ### Bug Fixes
