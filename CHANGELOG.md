@@ -2,6 +2,31 @@
 
 <!-- version list -->
 
+## v1.1.1 (2025-11-25)
+
+### Chores
+
+- Update uv.sync
+  ([`c4d55f2`](https://github.com/celine-eu/dwd-downloader/commit/c4d55f278c63fd66387386fab66e33e743ee75ee))
+
+- **deps**: Bump black from 25.9.0 to 25.11.0
+  ([`9b850af`](https://github.com/celine-eu/dwd-downloader/commit/9b850afc5dcbe427c5798d0e4b9f2c1ce88be019))
+
+- **deps**: Bump pytest from 8.4.2 to 9.0.0
+  ([`fdc2bfa`](https://github.com/celine-eu/dwd-downloader/commit/fdc2bfa4542b129f85edc543fd6ec3f9b905f486))
+
+- **deps**: Bump python-semantic-release from 10.4.1 to 10.5.0
+  ([`c8b58b1`](https://github.com/celine-eu/dwd-downloader/commit/c8b58b1da73cc1d0985bd8e78d714f40b1a024bf))
+
+- **deps**: Bump ruff
+  ([`748828d`](https://github.com/celine-eu/dwd-downloader/commit/748828d3ee0409ded9aaef62e8b12e2ef484de99))
+
+### Continuous Integration
+
+- Bump actions/checkout from 5.0.0 to 6.0.0 in the actions group
+  ([`07592ce`](https://github.com/celine-eu/dwd-downloader/commit/07592cea67b3be75481b25504b87dc5d9b44f98d))
+
+
 ## v1.1.0 (2025-11-25)
 
 ### Features
