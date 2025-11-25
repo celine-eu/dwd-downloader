@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.1.0 (2025-11-25)
+
+### Features
+
+- Refactor, fix s3 handling
+  ([`aea9e4d`](https://github.com/celine-eu/dwd-downloader/commit/aea9e4da9d8909f5dbd294f3c137ba4b38ee89e8))
+
+
 ## v1.0.7 (2025-11-10)
 
 ### Bug Fixes
