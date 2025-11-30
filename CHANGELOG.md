@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.2.1 (2025-11-30)
+
+### Bug Fixes
+
+- Add build cmd
+  ([`f4693b1`](https://github.com/celine-eu/dwd-downloader/commit/f4693b182b04c0d2d7c313911eefc85ea7975670))
+
+
 ## v1.2.0 (2025-11-30)
 
 ### Features
