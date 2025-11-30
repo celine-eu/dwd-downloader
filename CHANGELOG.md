@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.2.0 (2025-11-30)
+
+### Features
+
+- Add old files deletion
+  ([`833d759`](https://github.com/celine-eu/dwd-downloader/commit/833d759129896ee14d341b82bbeb29ab54deeacf))
+
+
 ## v1.1.1 (2025-11-25)
 
 ### Chores
