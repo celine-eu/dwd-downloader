@@ -30,3 +30,5 @@ storage:
   cleanup: true
   # days to keep
   keep_days: 1
+  # runs (forecast steps) to keep
+  keep_runs: 1

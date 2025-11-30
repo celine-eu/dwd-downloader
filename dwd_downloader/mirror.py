@@ -43,6 +43,7 @@ class IconDatasetMirror:
 
         self.cleanup_enabled = bool(storage_cfg.get("cleanup", False))
         self.keep_days = int(storage_cfg.get("keep_days", 1))
+        self.keep_runs = int(storage_cfg.get("keep_runs", 1))
 
         # where we keep incremental state
         self.metadata_key: str = self._metadata_key()
@@ -66,7 +67,32 @@ class IconDatasetMirror:
         variables: List[str] = self.dataset["variables"]
         steps: List[int] = self.dataset["forecast_steps"]
 
+        existing_complete = self._detect_existing_complete_runs()
+
+        if self.keep_runs > 0 and existing_complete:
+            # Sort by run hour descending
+            existing_complete_sorted = sorted(
+                existing_complete, key=lambda r: int(r), reverse=True
+            )
+
+            # Keep only newest 'keep_runs'
+            allowed_runs = set(existing_complete_sorted[: self.keep_runs])
+
+            logger.info(
+                "Existing complete runs found: %s. Allowed runs for download: %s",
+                existing_complete_sorted,
+                allowed_runs,
+            )
+        else:
+            allowed_runs = None  # meaning all runs allowed
+
         for run in runs:
+
+            # Skip if run is older than the newest allowed run
+            if allowed_runs is not None and run not in allowed_runs:
+                logger.info("Skipping run %s — a newer complete run exists", run)
+                continue
+
             run_hour = int(run)
             run_dt = datetime(
                 self.date.year,
@@ -96,6 +122,16 @@ class IconDatasetMirror:
                     continue
 
                 for step in steps:
+
+                    # If run already complete, skip all steps
+                    if (
+                        allowed_runs is not None
+                        and run in allowed_runs
+                        and run in existing_complete
+                    ):
+                        logger.info("Run %s already complete — skipping all steps", run)
+                        break
+
                     filename = self._build_filename(yyyymmdd, run, var, step)
 
                     # Skip if already recorded in metadata
@@ -131,6 +167,7 @@ class IconDatasetMirror:
 
         if self.cleanup_enabled:
             self._cleanup_old_dates()
+            self._cleanup_old_runs_for_date()
 
         self._save_metadata()
         logger.info("Completed mirror for dataset %s", self.dataset_name)
@@ -321,6 +358,106 @@ class IconDatasetMirror:
 
         except Exception as e:
             logger.error("Cleanup old folders failed: %s", e, exc_info=True)
+
+    def _cleanup_old_runs_for_date(self):
+        """Remove obsolete runs and forecast steps for the active date according to keep_runs."""
+
+        date_str = self.date.strftime("%Y%m%d")
+        base_prefix = f"{self.dataset_name}/{date_str}/"
+
+        # Gather all objects under this date
+        entries = self.storage.list(base_prefix)
+
+        # Detect available runs
+        runs_found = set()
+        for key in entries:
+            parts = key.split("/")
+            # expected: dataset/date/run/var/file
+            if len(parts) >= 4:
+                run = parts[2]
+                runs_found.add(run)
+
+        if not runs_found:
+            return
+
+        # Count number of data files per run
+        expected_total = len(self.dataset["variables"]) * len(
+            self.dataset["forecast_steps"]
+        )
+        run_sizes = {run: 0 for run in runs_found}
+
+        for key in entries:
+            parts = key.split("/")
+            if len(parts) >= 4:
+                run = parts[2]
+                if not key.endswith(".json"):
+                    run_sizes[run] += 1
+
+        # Select complete runs
+        complete_runs = [
+            run for run, count in run_sizes.items() if count == expected_total
+        ]
+
+        if not complete_runs:
+            logger.info(
+                "No complete runs found for date %s; skipping run cleanup.",
+                date_str,
+            )
+            return
+
+        # Sort runs newest → oldest
+        sorted_runs = sorted(complete_runs, key=lambda r: int(r), reverse=True)
+
+        # Keep the first N (default 1)
+        keep = sorted_runs[: max(self.keep_runs, 1)]
+
+        logger.info("For %s, keeping completed runs: %s", date_str, keep)
+
+        # Delete all other complete runs
+        for run in complete_runs:
+            if run not in keep:
+                prefix = f"{self.dataset_name}/{date_str}/{run}/"
+                logger.info("Deleting obsolete run folder: %s", prefix)
+                self.storage.delete_prefix(prefix)
+
+        # Clean metadata
+        keep_prefixes = [f"{date_str}{run}" for run in keep]
+
+        for var in self.metadata.keys():
+            new_entries = {}
+            for fname, ts in self.metadata[var].items():
+                if any(prefix in fname for prefix in keep_prefixes):
+                    new_entries[fname] = ts
+            self.metadata[var] = new_entries
+
+    def _detect_existing_complete_runs(self) -> list[str]:
+        """Return a list of completed runs already stored for this date."""
+
+        date_str = self.date.strftime("%Y%m%d")
+        prefix = f"{self.dataset_name}/{date_str}/"
+
+        entries = self.storage.list(prefix)
+        if not entries:
+            return []
+
+        expected_total = len(self.dataset["variables"]) * len(
+            self.dataset["forecast_steps"]
+        )
+
+        runs_found = {key.split("/")[2] for key in entries if len(key.split("/")) >= 4}
+        run_sizes = {r: 0 for r in runs_found}
+
+        for key in entries:
+            if key.endswith(".json"):
+                continue
+            parts = key.split("/")
+            if len(parts) >= 4:
+                run = parts[2]
+                run_sizes[run] += 1
+
+        complete = [run for run, count in run_sizes.items() if count == expected_total]
+
+        return complete
 
 
 def mirror_icon_dataset(
