@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.3.0 (2025-11-30)
+
+### Features
+
+- Remove old runs, skip runs when obsolete
+  ([`abf73b7`](https://github.com/celine-eu/dwd-downloader/commit/abf73b77530217a5bccbb6ffc08e454f40fc7167))
+
+
 ## v1.2.1 (2025-11-30)
 
 ### Bug Fixes
