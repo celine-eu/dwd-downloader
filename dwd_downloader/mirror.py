@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from typing import Dict, Any, List
+from datetime import timedelta
 
 import json
 import requests
@@ -39,6 +40,9 @@ class IconDatasetMirror:
         self.dataset_name: str = dataset["name"]
         self.decompress: bool = bool(storage_cfg.get("decompress", False))
         self.base_url: str = dataset["base_url"]
+
+        self.cleanup_enabled = bool(storage_cfg.get("cleanup", False))
+        self.keep_days = int(storage_cfg.get("keep_days", 1))
 
         # where we keep incremental state
         self.metadata_key: str = self._metadata_key()
@@ -124,6 +128,9 @@ class IconDatasetMirror:
                         logger.error(
                             "Failed downloading %s: %s", filename, e, exc_info=True
                         )
+
+        if self.cleanup_enabled:
+            self._cleanup_old_dates()
 
         self._save_metadata()
         logger.info("Completed mirror for dataset %s", self.dataset_name)
@@ -268,6 +275,52 @@ class IconDatasetMirror:
         if self.decompress and filename.endswith(".bz2"):
             filename = filename[:-4]
         return f"{self.dataset_name}/{yyyymmdd}/{run}/{var}/{filename}.json"
+
+    def _cleanup_old_dates(self) -> None:
+        """
+        Remove old dated folders from storage, preserving only
+        dates >= (self.date - keep_days + 1).
+        """
+        try:
+            prefix = f"{self.dataset_name}/"
+            entries = self.storage.list(prefix)
+
+            # Extract top-level date folders: dataset_name/YYYYMMDD/*
+            date_folders = set(
+                p.split("/")[1]
+                for p in entries
+                if p.startswith(prefix) and len(p.split("/")) > 1
+            )
+
+            if not date_folders:
+                return
+
+            cutoff_date = self.date - timedelta(days=self.keep_days - 1)
+            cutoff_str = cutoff_date.strftime("%Y%m%d")
+
+            logger.info(
+                "Cleanup enabled: keep_days=%s, cutoff >= %s",
+                self.keep_days,
+                cutoff_str,
+            )
+
+            for folder in date_folders:
+                if not (len(folder) == 8 and folder.isdigit()):
+                    continue
+
+                if folder < cutoff_str:
+                    folder_prefix = f"{self.dataset_name}/{folder}/"
+                    logger.info("Deleting old folder: %s", folder_prefix)
+                    self.storage.delete_prefix(folder_prefix)
+
+                    # prune metadata
+                    for var in self.metadata.keys():
+                        self.metadata[var] = {
+                            f: ts for f, ts in self.metadata[var].items() if folder in f
+                        }
+
+        except Exception as e:
+            logger.error("Cleanup old folders failed: %s", e, exc_info=True)
 
 
 def mirror_icon_dataset(

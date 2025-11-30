@@ -26,3 +26,7 @@ storage:
   type: fs
   data_dir: ${DATA_DIR}
   decompress: true
+  # cleanup older forecasts
+  cleanup: true
+  # days to keep
+  keep_days: 1

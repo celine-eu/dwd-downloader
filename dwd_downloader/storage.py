@@ -72,6 +72,16 @@ class Storage(ABC):
         """
         ...
 
+    @abstractmethod
+    def delete(self, key: str) -> None:
+        """Delete a single object (file)."""
+        ...
+
+    @abstractmethod
+    def delete_prefix(self, prefix: str) -> None:
+        """Delete all objects under a prefix."""
+        ...
+
 
 class FSStorage(Storage):
     """Filesystem-based storage with streaming support."""
@@ -109,6 +119,44 @@ class FSStorage(Storage):
             f = open(path, mode)
             return cast(BinaryIO, f)
         raise ValueError("FSStorage.open only supports read mode ('rb').")
+
+    def delete(self, key: str) -> None:
+        path = self._full_path(key)
+        try:
+            os.remove(path)
+        except FileNotFoundError:
+            pass
+
+    def delete_prefix(self, prefix: str) -> None:
+        """
+        Delete all files under base_dir/prefix and remove empty dirs.
+        Example: prefix="icon-eu/20250129/" deletes everything under that folder.
+        """
+        abs_prefix = self._full_path(prefix)
+
+        if not os.path.exists(abs_prefix):
+            return
+
+        # Remove all files (bottom-up)
+        for root, dirs, files in os.walk(abs_prefix, topdown=False):
+            for f in files:
+                try:
+                    os.remove(os.path.join(root, f))
+                except FileNotFoundError:
+                    pass
+
+            for d in dirs:
+                full_dir = os.path.join(root, d)
+                try:
+                    os.rmdir(full_dir)
+                except OSError:
+                    pass
+
+        # Remove top-level folder
+        try:
+            os.rmdir(abs_prefix)
+        except OSError:
+            pass
 
 
 class _IterableReader(io.RawIOBase):
@@ -171,3 +219,47 @@ class S3Storage(Storage):
             # StreamingBody is file-like
             return obj["Body"]
         raise ValueError("S3Storage.open only supports read mode ('rb').")
+
+    def delete(self, key: str) -> None:
+        try:
+            self.s3.delete_object(Bucket=self.bucket, Key=key)
+        except Exception:
+            pass
+
+    def delete_prefix(self, prefix: str) -> None:
+        """
+        Delete all S3 objects with the given prefix.
+        Uses batch delete for efficiency.
+        """
+        continuation_token = None
+
+        while True:
+            if continuation_token:
+                resp = self.s3.list_objects_v2(
+                    Bucket=self.bucket,
+                    Prefix=prefix,
+                    ContinuationToken=continuation_token,
+                )
+            else:
+                resp = self.s3.list_objects_v2(
+                    Bucket=self.bucket,
+                    Prefix=prefix,
+                )
+
+            items = resp.get("Contents", [])
+            if not items:
+                return
+
+            to_delete = [{"Key": obj["Key"]} for obj in items]
+
+            # Bulk delete API
+            self.s3.delete_objects(
+                Bucket=self.bucket,
+                Delete={"Objects": to_delete, "Quiet": True},
+            )
+
+            # Check if more objects exist
+            if resp.get("IsTruncated"):
+                continuation_token = resp.get("NextContinuationToken")
+            else:
+                return
