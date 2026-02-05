@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.4.0 (2026-02-05)
+
+### Features
+
+- Skip older run option
+  ([`be4d348`](https://github.com/celine-eu/dwd-downloader/commit/be4d3484403975dad739f8b74f22f6c5438e6749))
+
+
 ## v1.3.0 (2025-11-30)
 
 ### Features
