@@ -45,6 +45,8 @@ class IconDatasetMirror:
         self.keep_days = int(storage_cfg.get("keep_days", 1))
         self.keep_runs = int(storage_cfg.get("keep_runs", 1))
 
+        self.download_latest_only = bool(storage_cfg.get("download_latest_only", True))
+
         # where we keep incremental state
         self.metadata_key: str = self._metadata_key()
         self.metadata: Dict[str, Any] = self._load_metadata()
@@ -52,6 +54,66 @@ class IconDatasetMirror:
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
+
+    def _detect_newest_available_run_on_server(
+        self,
+        runs: List[str],
+        date_str: str,
+        variables: List[str],
+    ) -> str | None:
+        """
+        Detect the newest run available on the DWD server by checking which runs
+        have files available.
+
+        Returns:
+            The newest run hour (as string like "09", "12") or None if no runs found.
+        """
+        now = datetime.now(timezone.utc)
+
+        # Filter to only past/current runs
+        available_runs = []
+        for run in runs:
+            run_hour = int(run)
+            run_dt = datetime(
+                self.date.year,
+                self.date.month,
+                self.date.day,
+                run_hour,
+                tzinfo=timezone.utc,
+            )
+            if run_dt <= now:
+                available_runs.append(run)
+
+        if not available_runs:
+            return None
+
+        # Sort runs newest to oldest
+        sorted_runs = sorted(available_runs, key=lambda r: int(r), reverse=True)
+
+        # Check each run (starting with newest) to see if it has any files
+        for run in sorted_runs:
+            # Check first variable only (for efficiency)
+            test_var = variables[0] if variables else None
+            if not test_var:
+                continue
+
+            available_files = self._get_available_files_from_html(
+                run=run,
+                var=test_var,
+                date_str=date_str,
+            )
+
+            if available_files:
+                logger.info(
+                    "Detected newest available run on server: %s (has %d files for %s)",
+                    run,
+                    len(available_files),
+                    test_var,
+                )
+                return run
+
+        logger.warning("No runs with available files found on server")
+        return None
 
     def run(self) -> None:
         now = datetime.now(timezone.utc)
@@ -68,6 +130,19 @@ class IconDatasetMirror:
         steps: List[int] = self.dataset["forecast_steps"]
 
         existing_complete = self._detect_existing_complete_runs()
+
+        newest_on_server = None
+        if self.download_latest_only:
+            newest_on_server = self._detect_newest_available_run_on_server(
+                runs=runs,
+                date_str=yyyymmdd,
+                variables=variables,
+            )
+            if newest_on_server:
+                logger.info(
+                    "download_latest_only=True: Will only download run %s",
+                    newest_on_server,
+                )
 
         if self.keep_runs > 0 and existing_complete:
             # Sort by run hour descending
@@ -87,6 +162,16 @@ class IconDatasetMirror:
             allowed_runs = None  # meaning all runs allowed
 
         for run in runs:
+
+            # NEW: Skip if download_latest_only and this run is not the newest
+            if self.download_latest_only and newest_on_server:
+                if run != newest_on_server:
+                    logger.info(
+                        "Skipping run %s — download_latest_only is enabled, newest is %s",
+                        run,
+                        newest_on_server,
+                    )
+                    continue
 
             # Skip if run is older than the newest allowed run
             if allowed_runs is not None and run not in allowed_runs:

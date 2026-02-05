@@ -1,0 +1,15 @@
+# Dumpster configuration
+dumps:
+  - name: sources
+    extensions:
+      - .py
+      - .md
+      - .json
+      - .toml
+      - .yaml
+      - .yml
+    contents:
+      - dwd_downloader
+      - tests
+      - README.md
+      - pyproject.toml

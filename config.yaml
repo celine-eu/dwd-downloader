@@ -32,3 +32,5 @@ storage:
   keep_days: 1
   # runs (forecast steps) to keep
   keep_runs: 1
+  # on download, skip old runs and just keep the latest available
+  download_latest_only: true
